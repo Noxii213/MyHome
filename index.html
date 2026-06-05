@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>김도현 포트폴리오 & 미니게임 아케이드</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & ReactDOM CDN (Development Mode) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js" crossorigin></script>
+  
+  <!-- Babel Compiler for JSX in browser -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.4/babel.min.js"></script>
+
+  <!-- Tailwind Custom Style Overrides -->
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn {
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+    /* Smooth Scroll */
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
+</head>
+<body class="bg-white text-neutral-800 antialiased selection:bg-orange-100 selection:text-orange-600">
+
+  <div id="root"></div>
+
+  <!-- React JSX Application Script -->
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // ==========================================
+    // SVG ICONS (Replaced Lucide-react)
+    // ==========================================
+    const Icons = {
+      ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>,
+      Menu: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>,
+      X: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>,
+      Compass: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>,
+      Code: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>,
+      BookOpen: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
+      Search: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
+      Send: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>,
+      Trash2: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>,
+      ChevronDown: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>,
+      ChevronRight: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>,
+      Sparkles: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>,
+      CheckSquare: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>,
+      Lightbulb: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>,
+      Info: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+      Gamepad2: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5zm4 4h.01M9 13h.01" /></svg>,
+      RotateCcw: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18" /></svg>,
+      Play: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>,
+      Pause: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+      Award: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>,
+      Cpu: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 5h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2zm2 4h6v6H9V9z" /></svg>,
+      User: () => <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+    };
+
+    // ==========================================
+    // 1. DATA SET
+    // ==========================================
+    const BOOKS_DATA = [
+      {
+        id: 1,
+        title: "클린 코드 (Clean Code)",
+        author: "로버트 C. 마틴",
+        category: "tech",
+        categoryKo: "기술/IT",
+        date: "2026년 01월",
+        quote: "깨끗한 코드를 작성하는 예술은 곧 장인 정신을 발휘하는 예술과 같다.",
+        motive: "코딩 실력의 한계를 극복하고, 단순히 '작동하는 것'을 넘어 다른 개발자가 읽어도 단번에 구조와 목적이 파악되는 견고한 코드를 구현하는 개발자가 되고 싶어 시작했습니다.",
+        takeaways: [
+          "변수, 함수의 이름은 명확하고 설명적이어야 하며 의도를 즉각적으로 알려야 한다.",
+          "하나의 함수는 단 한 가지 일만 아주 훌륭히 책임지고 수행하도록 구조화해야 한다.",
+          "오류 처리는 프로그램의 제어 흐름과 독립적으로 존재해 코드의 흐름을 훼손하지 않아야 한다."
+        ],
+        insight: "이 책을 읽은 뒤 매 릴리즈마다 소스코드를 더 간결하게 정리하는 습관을 들였습니다. 미래에 내 코드를 이어받을 또 다른 사용자(동료)의 UX(사용자 경험)를 코딩 시점부터 미리 배려해야 한다는 귀중한 교훈을 얻었습니다.",
+        coverEmoji: "💻"
+      },
+      {
+        id: 2,
+        title: "디자인과 인간 심리",
+        author: "도널드 노먼",
+        category: "design",
+        categoryKo: "디자인/UX",
+        date: "2026년 02월",
+        quote: "훌륭한 디자인은 잘못 설계된 문처럼 사용자에게 좌절감을 주지 않고, 스스로 사용법을 직관적으로 드러낸다.",
+        motive: "개발을 공부하면서 결국 프로덕트의 모든 기능은 인간의 본능과 심리적 행동을 충족해야 한다는 점을 느꼈고, 그 설계 규칙의 본질을 파악하고자 이 명저를 찾아 읽었습니다.",
+        takeaways: [
+          "어포던스(행동 유도성)와 시그니피어(기표)를 극대화해야 무의식적인 동작이 가능해진다.",
+          "유저가 실수를 저지를 수밖에 없는 인지적 한계를 이해하고, 시스템 차원에서 실수를 예방하는 가이드를 제공해야 한다.",
+          "동작 후 즉각적이고 명확한 피드백(Feedback)을 통해 사용자가 행동의 성패를 바로 인지하도록 만든다."
+        ],
+        insight: "프론트엔드 인터페이스를 작성할 때 마우스를 호버하거나 클릭할 때 느껴지는 물리적 탄성 느낌의 피드백을 추가하는 원천 지식이 되었습니다. 사용자가 단 1초도 행동에 고민을 머뭇거리지 않는 자연스러운 화면을 향한 지향점이 생겼습니다.",
+        coverEmoji: "🎨"
+      },
+      {
+        id: 3,
+        title: "생각에 관한 생각",
+        author: "대니얼 카너먼",
+        category: "humanities",
+        categoryKo: "인문/철학",
+        date: "2026년 03월",
+        quote: "직관에 의존하는 시스템 1과 숙고를 요구하는 시스템 2의 갈등이 곧 우리 이성의 역사이다.",
+        motive: "사용자가 웹 애플리케이션에 접속했을 때 시선이 머무는 원인과 충동적으로 회원가입 혹은 이탈을 하게 만드는 뇌과학적 원인을 이해해 보겠다는 깊은 학구열로 정독했습니다.",
+        takeaways: [
+          "인간은 대부분의 일상 결정을 직관적이고 자원 소모가 적은 '시스템 1'에 크게 의존한다.",
+          "사용자에게 정보 인지 과부하(Cognitive Load)를 줄 경우, 뇌는 즉시 지쳐 작동을 회피하려 든다.",
+          "프레이밍 효과(Framing Effect)에 따라 질문과 정보를 정교하게 제시하는 것만으로 사용자의 행동 유도가 가능하다."
+        ],
+        insight: "웹사이트 구조를 짤 때 텍스트 양을 획기적으로 낮추고, 가독성을 최대로 높여 여백 중심의 레이아웃을 왜 추구해야 하는지 인지과학적 근거를 명확하게 정비하게 되었습니다.",
+        coverEmoji: "🧠"
+      },
+      {
+        id: 4,
+        title: "그릿 (GRIT)",
+        author: "앤절라 더크워스",
+        category: "growth",
+        categoryKo: "자기계발",
+        date: "2026년 04월",
+        quote: "천재성에 압도되지 마라. 최고의 탁월함은 재능이 아니라 끈질긴 열정과 지속적인 연마의 결과물이다.",
+        motive: "새로운 개발 도구와 웹 프레임워크가 매년 쏟아지는 트렌드 속에서 쉽게 좌절하거나 흔들리지 않고, 끊임없이 기술의 본질을 고수하며 정진할 수 있는 회복탄력성과 인내심을 다지고자 마인드셋을 점검했습니다.",
+        takeaways: [
+          "성공을 일궈내는 것은 단순한 지능지수(IQ)나 환경보다 장기적인 목표를 정복하는 끈기다.",
+          "관심을 확장하고 의식적인 연습(Deliberate Practice)을 지속하는 것만이 기술의 마스터가 되는 유일한 루트이다.",
+          "한 차례의 실패를 끝이 아닌, 다음 단계를 위한 유용한 피드백 데이터 수집으로 수용한다."
+        ],
+        insight: "코드의 난해한 버그를 해결하다 막혀 밤을 새울 때, 이 막막한 과정 전체가 '회복탄력성 그릿'을 훈련하는 유익한 고난의 과정이라는 주체적 자각을 유지하는 긍정 체력이 확충되었습니다.",
+        coverEmoji: "🔥"
+      }
+    ];
+
+    const GUESTBOOK_STORAGE_KEY = "dohyun_guestbook_messages";
+
+    const DEFAULT_MESSAGES = [
+      {
+        name: "박서연",
+        role: "학과 선배",
+        message: "인문학과 기술을 융합하는 도현이의 행보가 참 멋지다! 추천해 준 도널드 노먼 책 나도 읽어볼게. 끝까지 힘내라!",
+        date: "2026.05.25"
+      },
+      {
+        name: "정우재",
+        role: "스터디 파트너",
+        message: "포트폴리오 디자인이 정말 정돈되어 있고 직관적이네요. 오렌지 컬러가 아주 상큼하게 배움을 대하는 열정을 표현해 주는 것 같아 기분 좋습니다.",
+        date: "2026.05.27"
+      }
+    ];
+
+    // ==========================================
+    // 2. TETRIS GAME COMPONENT
+    // ==========================================
+    const SHAPES = {
+      I: [[1, 1, 1, 1]],
+      O: [[1, 1], [1, 1]],
+      T: [[0, 1, 0], [1, 1, 1]],
+      S: [[0, 1, 1], [1, 1, 0]],
+      Z: [[1, 1, 0], [0, 1, 1]],
+      J: [[1, 0, 0], [1, 1, 1]],
+      L: [[0, 0, 1], [1, 1, 1]]
+    };
+
+    const COLORS = {
+      I: 'bg-orange-400 border-orange-500',
+      O: 'bg-amber-400 border-amber-500',
+      T: 'bg-orange-500 border-orange-600',
+      S: 'bg-yellow-400 border-yellow-500',
+      Z: 'bg-orange-600 border-orange-700',
+      J: 'bg-amber-500 border-amber-600',
+      L: 'bg-neutral-800 border-neutral-900'
+    };
+
+    function TetrisGame() {
+      const ROWS = 20;
+      const COLS = 10;
+      const [grid, setGrid] = useState(Array(ROWS).fill(null).map(() => Array(COLS).fill(0)));
+      const [currentPiece, setCurrentPiece] = useState(null);
+      const [score, setScore] = useState(0);
+      const [gameOver, setGameOver] = useState(false);
+      const [isPlaying, setIsPlaying] = useState(false);
+      const gameInterval = useRef(null);
+
+      const spawnPiece = () => {
+        const keys = Object.keys(SHAPES);
+        const randomKey = keys[Math.floor(Math.random() * keys.length)];
+        const shape = SHAPES[randomKey];
+        return {
+          shape,
+          colorClass: COLORS[randomKey],
+          x: Math.floor((COLS - shape[0].length) / 2),
+          y: 0
+        };
+      };
+
+      const initGame = () => {
+        setGrid(Array(ROWS).fill(null).map(() => Array(COLS).fill(0)));
+        setCurrentPiece(spawnPiece());
+        setScore(0);
+        setGameOver(false);
+        setIsPlaying(true);
+      };
+
+      const checkCollision = (pieceShape, px, py, board) => {
+        for (let r = 0; r < pieceShape.length; r++) {
+          for (let c = 0; c < pieceShape[r].length; c++) {
+            if (pieceShape[r][c] !== 0) {
+              const nextX = px + c;
+              const nextY = py + r;
+              if (nextX < 0 || nextX >= COLS || nextY >= ROWS) return true;
+              if (nextY >= 0 && board[nextY][nextX] !== 0) return true;
+            }
+          }
+        }
+        return false;
+      };
+
+      const rotatePiece = () => {
+        if (!isPlaying || gameOver || !currentPiece) return;
+        const s = currentPiece.shape;
+        const rotated = Array(s[0].length).fill(null).map((_, i) =>
+          s.map(row => row[i]).reverse()
+        );
+        if (!checkCollision(rotated, currentPiece.x, currentPiece.y, grid)) {
+          setCurrentPiece({ ...currentPiece, shape: rotated });
+        }
+      };
+
+      const moveLeft = () => {
+        if (!isPlaying || gameOver || !currentPiece) return;
+        if (!checkCollision(currentPiece.shape, currentPiece.x - 1, currentPiece.y, grid)) {
+          setCurrentPiece({ ...currentPiece, x: currentPiece.x - 1 });
+        }
+      };
+
+      const moveRight = () => {
+        if (!isPlaying || gameOver || !currentPiece) return;
+        if (!checkCollision(currentPiece.shape, currentPiece.x + 1, currentPiece.y, grid)) {
+          setCurrentPiece({ ...currentPiece, x: currentPiece.x + 1 });
+        }
+      };
+
+      const moveDown = () => {
+        if (!isPlaying || gameOver || !currentPiece) return;
+        if (!checkCollision(currentPiece.shape, currentPiece.x, currentPiece.y + 1, grid)) {
+          setCurrentPiece(prev => ({ ...prev, y: prev.y + 1 }));
+        } else {
+          lockPiece();
+        }
+      };
+
+      const lockPiece = (finalPiece) => {
+        const pieceToLock = finalPiece || currentPiece;
+        if (!pieceToLock) return;
+
+        const newGrid = grid.map(row => [...row]);
+        let dead = false;
+        
+        pieceToLock.shape.forEach((row, r) => {
+          row.forEach((cell, c) => {
+            if (cell !== 0) {
+              const boardY = pieceToLock.y + r;
+              const boardX = pieceToLock.x + c;
+              if (boardY < 0) {
+                dead = true;
+              } else {
+                newGrid[boardY][boardX] = pieceToLock.colorClass;
+              }
+            }
+          });
+        });
+
+        if (dead) {
+          setGameOver(true);
+          setIsPlaying(false);
+          return;
+        }
+
+        let clearedLines = 0;
+        const filteredGrid = newGrid.filter(row => {
+          const isComplete = row.every(cell => cell !== 0);
+          if (isComplete) clearedLines++;
+          return !isComplete;
+        });
+
+        while (filteredGrid.length < ROWS) {
+          filteredGrid.unshift(Array(COLS).fill(0));
+        }
+
+        if (clearedLines > 0) {
+          setScore(prev => prev + clearedLines * 100);
+        }
+
+        setGrid(filteredGrid);
+        const next = spawnPiece();
+        if (checkCollision(next.shape, next.x, next.y, filteredGrid)) {
+          setGameOver(true);
+          setIsPlaying(false);
+        } else {
+          setCurrentPiece(next);
+        }
+      };
+
+      const hardDrop = () => {
+        if (!isPlaying || gameOver || !currentPiece) return;
+        let currentY = currentPiece.y;
+        while (!checkCollision(currentPiece.shape, currentPiece.x, currentY + 1, grid)) {
+          currentY++;
+        }
+        const finalPiece = { ...currentPiece, y: currentY };
+        lockPiece(finalPiece);
+      };
+
+      const getGhostY = () => {
+        if (!currentPiece) return 0;
+        let ghostY = currentPiece.y;
+        while (!checkCollision(currentPiece.shape, currentPiece.x, ghostY + 1, grid)) {
+          ghostY++;
+        }
+        return ghostY;
+      };
+
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          if (!isPlaying || gameOver) return;
+          if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            moveLeft();
+          }
+          if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            moveRight();
+          }
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            moveDown();
+          }
+          if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            rotatePiece();
+          }
+          if (e.key === ' ') {
+            e.preventDefault();
+            hardDrop();
+          }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [isPlaying, gameOver, currentPiece, grid]);
+
+      useEffect(() => {
+        if (isPlaying && !gameOver) {
+          gameInterval.current = setInterval(moveDown, 600);
+        } else {
+          clearInterval(gameInterval.current);
+        }
+        return () => clearInterval(gameInterval.current);
+      }, [isPlaying, gameOver, currentPiece, grid]);
+
+      const displayGrid = grid.map(row => [...row]);
+      
+      if (currentPiece && isPlaying) {
+        const ghostY = getGhostY();
+        
+        if (ghostY !== currentPiece.y) {
+          currentPiece.shape.forEach((row, r) => {
+            row.forEach((cell, c) => {
+              if (cell !== 0) {
+                const drawY = ghostY + r;
+                const drawX = currentPiece.x + c;
+                if (drawY >= 0 && drawY < ROWS && drawX >= 0 && drawX < COLS) {
+                  if (displayGrid[drawY][drawX] === 0) {
+                    displayGrid[drawY][drawX] = 'GHOST';
+                  }
+                }
+              }
+            });
+          });
+        }
+
+        currentPiece.shape.forEach((row, r) => {
+          row.forEach((cell, c) => {
+            if (cell !== 0) {
+              const drawY = currentPiece.y + r;
+              const drawX = currentPiece.x + c;
+              if (drawY >= 0 && drawY < ROWS && drawX >= 0 && drawX < COLS) {
+                displayGrid[drawY][drawX] = currentPiece.colorClass;
+              }
+            }
+          });
+        });
+      }
+
+      return (
+        <div className="w-full max-w-sm flex flex-col items-center select-none">
+          <div className="flex items-center justify-between w-full mb-4 px-2">
+            <div className="flex items-center gap-1.5 bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold">
+              <Icons.Award />
+              <span>SCORE: {score}</span>
+            </div>
+            <button
+              onClick={initGame}
+              className="text-xs bg-neutral-900 text-white font-bold px-4 py-2 rounded-xl flex items-center gap-1 hover:bg-orange-500 transition-colors"
+            >
+              <Icons.RotateCcw />
+              {gameOver ? '다시 시작' : '게임 세팅'}
+            </button>
+          </div>
+
+          <div className="relative bg-neutral-950 p-2.5 rounded-3xl shadow-xl border border-neutral-800">
+            <div className="grid grid-cols-10 gap-[1px] bg-neutral-900 w-[240px] h-[480px]">
+              {displayGrid.map((row, r) =>
+                row.map((cell, c) => {
+                  let cellClass = 'bg-neutral-950/60 border-neutral-900/20';
+                  if (cell === 'GHOST') {
+                    cellClass = 'bg-orange-500/20 border-2 border-orange-500/40 border-dashed animate-pulse';
+                  } else if (cell) {
+                    cellClass = cell;
+                  }
+                  
+                  return (
+                    <div
+                      key={`${r}-${c}`}
+                      className={`w-full h-full rounded-[2px] transition-all duration-75 border-b border-r ${cellClass}`}
+                    />
+                  );
+                })
+              )}
+            </div>
+
+            {!isPlaying && !gameOver && (
+              <div className="absolute inset-0 bg-neutral-950/90 rounded-3xl flex flex-col items-center justify-center p-6 text-center">
+                <div className="text-orange-500 mb-2 animate-bounce"><Icons.Gamepad2 /></div>
+                <h4 className="text-white font-black text-lg">테트리스 오렌지</h4>
+                <p className="text-neutral-400 text-[11px] mt-2 leading-relaxed">
+                  [키보드 조작안내]<br />
+                  ← → : 이동 | ↑ : 회전 | ↓ : 빠른 낙하<br />
+                  <span className="text-orange-400 font-bold">Spacebar : 즉시 설치 (Hard Drop)</span>
+                </p>
+                <button
+                  onClick={initGame}
+                  className="mt-6 bg-orange-500 hover:bg-orange-600 text-neutral-950 font-bold px-6 py-2.5 rounded-full text-sm shadow-md"
+                >
+                  게임 시작
+                </button>
+              </div>
+            )}
+
+            {gameOver && (
+              <div className="absolute inset-0 bg-neutral-950/95 rounded-3xl flex flex-col items-center justify-center p-6 text-center">
+                <span className="text-red-500 font-black text-2xl tracking-wider">GAME OVER</span>
+                <p className="text-neutral-400 text-sm mt-1 mb-4">최종 스코어: <span className="text-orange-500 font-bold">{score}점</span></p>
+                <button
+                  onClick={initGame}
+                  className="bg-orange-500 hover:bg-orange-600 text-neutral-950 font-bold px-6 py-2 rounded-full text-xs shadow-md"
+                >
+                  다시 도전하기
+                </button>
+              </div>
+            )}
+          </div>
+
+          {isPlaying && (
+            <div className="grid grid-cols-5 gap-1.5 w-full mt-4 max-w-[300px]">
+              <button onClick={moveLeft} className="bg-neutral-200 hover:bg-neutral-300 p-2 rounded-xl font-bold text-xs">←</button>
+              <button onClick={rotatePiece} className="bg-neutral-200 hover:bg-neutral-300 p-2 rounded-xl font-bold text-xs">회전</button>
+              <button onClick={moveDown} className="bg-neutral-200 hover:bg-neutral-300 p-2 rounded-xl font-bold text-xs">↓</button>
+              <button onClick={moveRight} className="bg-neutral-200 hover:bg-neutral-300 p-2 rounded-xl font-bold text-xs">→</button>
+              <button onClick={hardDrop} className="bg-orange-500 text-neutral-950 hover:bg-orange-600 p-2 rounded-xl font-black text-xs">즉시</button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 3. SUDOKU GAME COMPONENT
+    // ==========================================
+    const DIFFICULTY_LEVELS = {
+      easy: 30,
+      medium: 42,
+      hard: 54
+    };
+
+    function SudokuGame() {
+      const [board, setBoard] = useState(Array(9).fill(null).map(() => Array(9).fill('')));
+      const [initialBoard, setInitialBoard] = useState(Array(9).fill(null).map(() => Array(9).fill(null)));
+      const [selectedCell, setSelectedCell] = useState(null);
+      const [difficulty, setDifficulty] = useState("easy");
+      const [isValidated, setIsValidated] = useState(false);
+      const [validationResult, setValidationResult] = useState(null);
+
+      const SOLVED_BASE = [
+        [5, 3, 4, 6, 7, 8, 9, 1, 2],
+        [6, 7, 2, 1, 9, 5, 3, 4, 8],
+        [1, 9, 8, 3, 4, 2, 5, 6, 7],
+        [8, 5, 9, 7, 6, 1, 4, 2, 3],
+        [4, 2, 6, 8, 5, 3, 7, 9, 1],
+        [7, 1, 3, 9, 2, 4, 8, 5, 6],
+        [9, 6, 1, 5, 3, 7, 2, 8, 4],
+        [2, 8, 7, 4, 1, 9, 6, 3, 5],
+        [3, 4, 5, 2, 8, 6, 1, 7, 9]
+      ];
+
+      const generateSudoku = (level) => {
+        setIsValidated(false);
+        setValidationResult(null);
+        setSelectedCell(null);
+
+        let solution = SOLVED_BASE.map(row => [...row]);
+        
+        const numberMapping = {};
+        const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        const shuffledNumbers = [...numbers].sort(() => Math.random() - 0.5);
+        numbers.forEach((n, idx) => {
+          numberMapping[n] = shuffledNumbers[idx];
+        });
+
+        solution = solution.map(row => row.map(cell => numberMapping[cell]));
+
+        const emptyCount = DIFFICULTY_LEVELS[level];
+        const newBoard = solution.map(row => row.map(val => val.toString()));
+        const initialConfig = Array(9).fill(null).map(() => Array(9).fill(false));
+
+        let holesCreated = 0;
+        while (holesCreated < emptyCount) {
+          const randRow = Math.floor(Math.random() * 9);
+          const randCol = Math.floor(Math.random() * 9);
+          if (newBoard[randRow][randCol] !== '') {
+            newBoard[randRow][randCol] = '';
+            holesCreated++;
+          }
+        }
+
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            initialConfig[r][c] = newBoard[r][c] !== '';
+          }
+        }
+
+        setBoard(newBoard);
+        setInitialBoard(initialConfig);
+      };
+
+      useEffect(() => {
+        generateSudoku(difficulty);
+      }, [difficulty]);
+
+      const handleCellSelect = (r, c) => {
+        if (initialBoard[r][c]) return;
+        setSelectedCell({ r, c });
+      };
+
+      const handleNumberInput = (number) => {
+        if (!selectedCell) return;
+        const { r, c } = selectedCell;
+        const nextBoard = board.map(row => [...row]);
+        nextBoard[r][c] = number === 0 ? '' : number.toString();
+        setBoard(nextBoard);
+      };
+
+      const validateSudoku = () => {
+        setIsValidated(true);
+
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            if (board[r][c] === '') {
+              setValidationResult('incomplete');
+              return;
+            }
+          }
+        }
+
+        const isValidGroup = (arr) => {
+          const nums = arr.filter(n => n !== '');
+          return nums.length === new Set(nums).size;
+        };
+
+        for (let i = 0; i < 9; i++) {
+          const row = board[i];
+          const col = board.map(r => r[i]);
+          if (!isValidGroup(row) || !isValidGroup(col)) {
+            setValidationResult('failure');
+            return;
+          }
+        }
+
+        for (let rowBlock = 0; rowBlock < 3; rowBlock++) {
+          for (let colBlock = 0; colBlock < 3; colBlock++) {
+            const chunk = [];
+            for (let r = 0; r < 3; r++) {
+              for (let c = 0; c < 3; c++) {
+                chunk.push(board[rowBlock * 3 + r][colBlock * 3 + c]);
+              }
+            }
+            if (!isValidGroup(chunk)) {
+              setValidationResult('failure');
+              return;
+            }
+          }
+        }
+
+        setValidationResult('success');
+      };
+
+      return (
+        <div className="w-full max-w-sm flex flex-col items-center">
+          <div className="flex gap-2 mb-4">
+            {['easy', 'medium', 'hard'].map(level => (
+              <button
+                key={level}
+                onClick={() => setDifficulty(level)}
+                className={`text-[11px] px-3 py-1.5 rounded-full font-bold uppercase transition-all ${
+                  difficulty === level
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200'
+                }`}
+              >
+                {level === 'easy' ? '쉬움' : level === 'medium' ? '보통' : '어려움'}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-9 gap-[1px] bg-neutral-300 border-2 border-neutral-800 p-0.5 rounded-2xl w-full aspect-square bg-white shadow-md mb-6 overflow-hidden">
+            {board.map((row, r) =>
+              row.map((cell, c) => {
+                const isInitial = initialBoard[r][c];
+                const isSelected = selectedCell && selectedCell.r === r && selectedCell.c === c;
+                
+                const borderR = (c === 2 || c === 5) ? 'border-r-2 border-r-neutral-800' : '';
+                const borderB = (r === 2 || r === 5) ? 'border-b-2 border-b-neutral-800' : '';
+
+                return (
+                  <div
+                    key={`${r}-${c}`}
+                    onClick={() => handleCellSelect(r, c)}
+                    className={`flex items-center justify-center text-base font-extrabold cursor-pointer select-none aspect-square transition-colors ${borderR} ${borderB} ${
+                      isInitial 
+                        ? 'bg-neutral-100/80 text-neutral-400' 
+                        : isSelected
+                          ? 'bg-orange-100 text-orange-600 font-black scale-105'
+                          : 'bg-white hover:bg-orange-50/50 text-neutral-800'
+                    }`}
+                  >
+                    {cell}
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {isValidated && (
+            <div className={`w-full text-center py-2 px-4 rounded-xl text-xs font-bold mb-4 animate-[fadeIn_0.3s_ease] ${
+              validationResult === 'success'
+                ? 'bg-green-100 text-green-700'
+                : validationResult === 'incomplete'
+                  ? 'bg-amber-100 text-amber-700'
+                  : 'bg-red-100 text-red-700'
+            }`}>
+              {validationResult === 'success' && '🎉 완벽합니다! 미션 클리어!'}
+              {validationResult === 'incomplete' && '⚠️ 아직 비어있는 빈 칸이 존재합니다.'}
+              {validationResult === 'failure' && '❌ 스도쿠 규칙과 어긋나는 숫자가 있습니다. 수정해보세요!'}
+            </div>
+          )}
+
+          <div className="grid grid-cols-5 gap-1.5 w-full mb-6 max-w-[280px]">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, '지우기'].map(num => (
+              <button
+                key={num}
+                onClick={() => handleNumberInput(num === '지우기' ? 0 : num)}
+                className="bg-neutral-100 hover:bg-orange-50 border border-neutral-200 active:scale-95 text-sm font-bold py-2.5 rounded-xl transition-all"
+              >
+                {num}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex gap-2 w-full max-w-[280px]">
+            <button
+              onClick={() => generateSudoku(difficulty)}
+              className="flex-1 text-xs bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-bold py-2.5 rounded-full flex items-center justify-center gap-1"
+            >
+              <Icons.RotateCcw /> 새 판 짜기
+            </button>
+            <button
+              onClick={validateSudoku}
+              className="flex-1 text-xs bg-orange-500 hover:bg-orange-600 text-neutral-950 font-bold py-2.5 rounded-full"
+            >
+              정답 확인하기
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 4. CHESS GAME COMPONENT
+    // ==========================================
+    const INITIAL_CHESS_BOARD = [
+      ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
+      ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+      ['', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', ''],
+      ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+      ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
+    ];
+
+    const PIECE_EMOJIS = {
+      'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟',
+      'K': '♚', 'Q': '♛', 'R': '♜', 'B': '♝', 'N': '♞', 'P': '♟'
+    };
+
+    const PIECE_NAMES = {
+      'p': '폰', 'n': '나이트', 'b': '비숍', 'r': '룩', 'q': '퀸', 'k': '킹',
+      'P': '폰', 'N': '나이트', 'B': '비숍', 'R': '룩', 'Q': '퀸', 'K': '킹'
+    };
+
+    const PIECE_VALUES = {
+      'p': 10, 'n': 30, 'b': 30, 'r': 50, 'q': 90, 'k': 1000,
+      'P': 10, 'N': 30, 'B': 30, 'R': 50, 'Q': 90, 'K': 1000
+    };
+
+    function ChessGame() {
+      const [board, setBoard] = useState(INITIAL_CHESS_BOARD.map(row => [...row]));
+      const [selected, setSelected] = useState(null);
+      const [validMoves, setValidMoves] = useState([]);
+      const [turn, setTurn] = useState('white');
+      const [aiThinking, setAiThinking] = useState(false);
+      const [moveHistory, setMoveHistory] = useState([]);
+      const [gameResult, setGameResult] = useState(null);
+
+      const resetGame = () => {
+        setBoard(INITIAL_CHESS_BOARD.map(row => [...row]));
+        setSelected(null);
+        setValidMoves([]);
+        setTurn('white');
+        setAiThinking(false);
+        setMoveHistory([]);
+        setGameResult(null);
+      };
+
+      const isWhitePiece = (piece) => piece && piece === piece.toUpperCase();
+      const isBlackPiece = (piece) => piece && piece === piece.toLowerCase();
+      const inBounds = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
+
+      const calculateValidMoves = (r, c, currentBoard) => {
+        const piece = currentBoard[r][c];
+        if (!piece) return [];
+
+        const moves = [];
+        const isWhite = isWhitePiece(piece);
+
+        switch (piece.toUpperCase()) {
+          case 'P': {
+            const dir = isWhite ? -1 : 1;
+            const startRow = isWhite ? 6 : 1;
+
+            if (inBounds(r + dir, c) && currentBoard[r + dir][c] === '') {
+              moves.push({ r: r + dir, c });
+              if (r === startRow && inBounds(r + 2 * dir, c) && currentBoard[r + 2 * dir][c] === '' && currentBoard[r + dir][c] === '') {
+                moves.push({ r: r + 2 * dir, c });
+              }
+            }
+
+            const captures = [{ dr: dir, dc: -1 }, { dr: dir, dc: 1 }];
+            captures.forEach(offset => {
+              const nr = r + offset.dr;
+              const nc = c + offset.dc;
+              if (inBounds(nr, nc)) {
+                const targetPiece = currentBoard[nr][nc];
+                if (targetPiece !== '') {
+                  const isTargetWhite = isWhitePiece(targetPiece);
+                  if (isWhite !== isTargetWhite) {
+                    moves.push({ r: nr, c: nc });
+                  }
+                }
+              }
+            });
+            break;
+          }
+
+          case 'N': {
+            const offsets = [
+              { dr: -2, dc: -1 }, { dr: -2, dc: 1 },
+              { dr: -1, dc: -2 }, { dr: -1, dc: 2 },
+              { dr: 1, dc: -2 }, { dr: 1, dc: 2 },
+              { dr: 2, dc: -1 }, { dr: 2, dc: 1 }
+            ];
+            offsets.forEach(offset => {
+              const nr = r + offset.dr;
+              const nc = c + offset.dc;
+              if (inBounds(nr, nc)) {
+                const targetPiece = currentBoard[nr][nc];
+                if (targetPiece === '' || isWhitePiece(targetPiece) !== isWhite) {
+                  moves.push({ r: nr, c: nc });
+                }
+              }
+            });
+            break;
+          }
+
+          case 'R': {
+            const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+            directions.forEach(([dr, dc]) => {
+              let nr = r + dr;
+              let nc = c + dc;
+              while (inBounds(nr, nc)) {
+                const targetPiece = currentBoard[nr][nc];
+                if (targetPiece === '') {
+                  moves.push({ r: nr, c: nc });
+                } else {
+                  if (isWhitePiece(targetPiece) !== isWhite) {
+                    moves.push({ r: nr, c: nc });
+                  }
+                  break;
+                }
+                nr += dr;
+                nc += dc;
+              }
+            });
+            break;
+          }
+
+          case 'B': {
+            const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+            directions.forEach(([dr, dc]) => {
+              let nr = r + dr;
+              let nc = c + dc;
+              while (inBounds(nr, nc)) {
+                const targetPiece = currentBoard[nr][nc];
+                if (targetPiece === '') {
+                  moves.push({ r: nr, c: nc });
+                } else {
+                  if (isWhitePiece(targetPiece) !== isWhite) {
+                    moves.push({ r: nr, c: nc });
+                  }
+                  break;
+                }
+                nr += dr;
+                nc += dc;
+              }
+            });
+            break;
+          }
+
+          case 'Q': {
+            const directions = [
+              [-1, 0], [1, 0], [0, -1], [0, 1],
+              [-1, -1], [-1, 1], [1, -1], [1, 1]
+            ];
+            directions.forEach(([dr, dc]) => {
+              let nr = r + dr;
+              let nc = c + dc;
+              while (inBounds(nr, nc)) {
+                const targetPiece = currentBoard[nr][nc];
+                if (targetPiece === '') {
+                  moves.push({ r: nr, c: nc });
+                } else {
+                  if (isWhitePiece(targetPiece) !== isWhite) {
+                    moves.push({ r: nr, c: nc });
+                  }
+                  break;
+                }
+                nr += dr;
+                nc += dc;
+              }
+            });
+            break;
+          }
+
+          case 'K': {
+            const directions = [
+              [-1, 0], [1, 0], [0, -1], [0, 1],
+              [-1, -1], [-1, 1], [1, -1], [1, 1]
+            ];
+            directions.forEach(([dr, dc]) => {
+              const nr = r + dr;
+              const nc = c + dc;
+              if (inBounds(nr, nc)) {
+                const targetPiece = currentBoard[nr][nc];
+                if (targetPiece === '' || isWhitePiece(targetPiece) !== isWhite) {
+                  moves.push({ r: nr, c: nc });
+                }
+              }
+            });
+            break;
+          }
+
+          default:
+            break;
+        }
+
+        return moves;
+      };
+
+      const handleCellClick = (r, c) => {
+        if (turn !== 'white' || aiThinking || gameResult) return;
+
+        const piece = board[r][c];
+        const isDestValid = validMoves.some(mv => mv.r === r && mv.c === c);
+
+        if (isDestValid && selected) {
+          executeMove(selected.r, selected.c, r, c);
+        } else if (piece && isWhitePiece(piece)) {
+          setSelected({ r, c });
+          const moves = calculateValidMoves(r, c, board);
+          setValidMoves(moves);
+        } else {
+          setSelected(null);
+          setValidMoves([]);
+        }
+      };
+
+      const executeMove = (fromR, fromC, toR, toC) => {
+        const updatedBoard = board.map(row => [...row]);
+        const movingPiece = updatedBoard[fromR][fromC];
+        const capturedPiece = updatedBoard[toR][toC];
+
+        updatedBoard[fromR][fromC] = '';
+        updatedBoard[toR][toC] = movingPiece;
+
+        if (movingPiece === 'P' && toR === 0) updatedBoard[toR][toC] = 'Q';
+        if (movingPiece === 'p' && toR === 7) updatedBoard[toR][toC] = 'q';
+
+        const sideName = isWhitePiece(movingPiece) ? '백' : '흑';
+        const pieceName = PIECE_NAMES[movingPiece];
+        const capStr = capturedPiece ? ` ✕ [${isWhitePiece(capturedPiece) ? '백' : '흑'}]${PIECE_NAMES[capturedPiece]}` : '';
+        const moveNote = `[${sideName}] ${pieceName} (${fromR + 1},${fromC + 1}) ➔ (${toR + 1},${toC + 1})${capStr}`;
+        setMoveHistory(prev => [moveNote, ...prev].slice(0, 10));
+
+        setBoard(updatedBoard);
+        setSelected(null);
+        setValidMoves([]);
+
+        if (capturedPiece && capturedPiece.toLowerCase() === 'k') {
+          if (isWhitePiece(capturedPiece)) {
+            setGameResult('black_win');
+          } else {
+            setGameResult('white_win');
+          }
+          return;
+        }
+
+        setTurn(turn === 'white' ? 'black' : 'white');
+      };
+
+      useEffect(() => {
+        if (turn === 'black' && !gameResult) {
+          setAiThinking(true);
+          const timer = setTimeout(() => {
+            makeAiDecision();
+          }, 700);
+          return () => clearTimeout(timer);
+        }
+      }, [turn, gameResult]);
+
+      const makeAiDecision = () => {
+        const allAiMoves = [];
+
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const piece = board[r][c];
+            if (piece && isBlackPiece(piece)) {
+              const pieceMoves = calculateValidMoves(r, c, board);
+              pieceMoves.forEach(mv => {
+                allAiMoves.push({
+                  from: { r, c },
+                  to: mv,
+                  piece: piece,
+                  captured: board[mv.r][mv.c]
+                });
+              });
+            }
+          }
+        }
+
+        if (allAiMoves.length === 0) {
+          setGameResult('white_win');
+          setAiThinking(false);
+          return;
+        }
+
+        const scoredMoves = allAiMoves.map(move => {
+          let score = 0;
+
+          if (move.captured) {
+            score += PIECE_VALUES[move.captured] * 10;
+            if (move.captured === 'K') {
+              score += 10000;
+            }
+          }
+
+          if (move.piece === 'p' && move.to.r === 7) {
+            score += 80;
+          }
+
+          const distToCenter = Math.abs(move.to.c - 3.5);
+          score += (4 - distToCenter) * 1.5;
+          score += move.to.r * 1.0;
+          score += Math.random() * 2;
+
+          return { ...move, score };
+        });
+
+        scoredMoves.sort((a, b) => b.score - a.score);
+        const bestMove = scoredMoves[0];
+
+        if (bestMove) {
+          executeMove(bestMove.from.r, bestMove.from.c, bestMove.to.r, bestMove.to.c);
+        }
+        setAiThinking(false);
+      };
+
+      return (
+        <div className="w-full max-w-4xl flex flex-col lg:flex-row gap-8 items-center lg:items-stretch">
+          <div className="flex flex-col items-center flex-1 max-w-md">
+            <div className="flex items-center justify-between w-full mb-4 px-2">
+              <div className="flex items-center gap-2">
+                {aiThinking ? (
+                  <div className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-xs font-bold animate-pulse">
+                    <Icons.Cpu />
+                    <span>AI 생각하는 중...</span>
+                  </div>
+                ) : (
+                  <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                    turn === 'white' ? 'bg-orange-100 text-orange-600' : 'bg-neutral-800 text-white'
+                  }`}>
+                    {turn === 'white' ? <Icons.User /> : <Icons.Cpu />}
+                    <span>차례: {turn === 'white' ? '플레이어 (백)' : '인공지능 (흑)'}</span>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={resetGame}
+                className="text-xs bg-neutral-900 text-white font-bold px-4 py-2 rounded-xl flex items-center gap-1 hover:bg-orange-500 hover:text-neutral-950 transition-colors"
+              >
+                <Icons.RotateCcw /> 대국 재시작
+              </button>
+            </div>
+
+            <div className="relative border-4 border-neutral-900 rounded-3xl overflow-hidden shadow-2xl w-full aspect-square grid grid-cols-8 grid-rows-8 bg-white">
+              {board.map((row, r) =>
+                row.map((cell, c) => {
+                  const isDark = (r + c) % 2 === 1;
+                  const isSelected = selected && selected.r === r && selected.c === c;
+                  const isValidDest = validMoves.some(mv => mv.r === r && mv.c === c);
+                  
+                  let tileBg = isDark ? 'bg-orange-50/40' : 'bg-white';
+                  if (isSelected) {
+                    tileBg = 'bg-orange-200 ring-2 ring-orange-500 rounded-lg scale-[0.96] z-10';
+                  }
+
+                  return (
+                    <div
+                      key={`${r}-${c}`}
+                      onClick={() => handleCellClick(r, c)}
+                      className={`relative flex items-center justify-center cursor-pointer select-none transition-all ${tileBg} hover:bg-orange-100/40`}
+                    >
+                      {isValidDest && (
+                        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                          <div className={`rounded-full ${cell ? 'w-8 h-8 border-4 border-orange-500/60' : 'w-3.5 h-3.5 bg-orange-500/70'}`} />
+                        </div>
+                      )}
+
+                      {cell && (
+                        <span 
+                          className={`text-4xl md:text-5xl select-none z-0 transition-all font-semibold filter ${
+                            isWhitePiece(cell) 
+                              ? 'text-stone-50 drop-shadow-[0_2.5px_2.5px_rgba(0,0,0,0.85)]' 
+                              : 'text-neutral-950 drop-shadow-[0_1.5px_1.5px_rgba(255,255,255,0.7)]'
+                          }`}
+                        >
+                          {PIECE_EMOJIS[cell]}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+
+              {gameResult && (
+                <div className="absolute inset-0 bg-neutral-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-20 animate-fadeIn">
+                  <div className="text-orange-500 mb-3 animate-bounce"><Icons.Award /></div>
+                  <h4 className="text-white text-2xl font-black tracking-wide">
+                    {gameResult === 'white_win' && '🎉 당신의 위대한 승리!'}
+                    {gameResult === 'black_win' && '♟️ 인공지능(AI) 승리'}
+                  </h4>
+                  <p className="text-neutral-400 text-xs mt-2 leading-relaxed">
+                    {gameResult === 'white_win' ? '상대방의 킹(♚)을 먼저 잡는데 성공했습니다!' : 'AI가 당신의 킹(♔)을 사로잡았습니다.'}
+                  </p>
+                  <button
+                    onClick={resetGame}
+                    className="mt-6 bg-orange-500 hover:bg-orange-600 text-neutral-950 font-black px-6 py-2.5 rounded-full text-xs shadow-md transition-all"
+                  >
+                    다시 한 판 하기
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="w-full lg:w-72 bg-neutral-50 p-6 rounded-3xl border border-neutral-200/60 flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="border-b border-neutral-200 pb-3">
+                <h4 className="font-extrabold text-neutral-900 text-sm flex items-center gap-1.5">
+                  <Icons.Cpu />
+                  AI 대국 현황 브리핑
+                </h4>
+                <p className="text-xs text-neutral-500 mt-1">
+                  흑과 백의 색깔 구분이 더욱 명확해졌습니다.<br />
+                  <strong className="text-orange-600 font-bold">승리조건: 킹(King)을 먼저 제거하세요!</strong>
+                </p>
+              </div>
+
+              <div>
+                <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block mb-2">실시간 기보 기록</span>
+                {moveHistory.length > 0 ? (
+                  <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
+                    {moveHistory.map((note, index) => (
+                      <div key={index} className="flex justify-between items-center text-xs bg-white p-2 rounded-lg border border-neutral-200/50">
+                        <span className="text-[10px] bg-neutral-100 text-neutral-500 px-1.5 py-0.5 rounded font-mono">수순 {moveHistory.length - index}</span>
+                        <span className="font-medium text-neutral-700 font-mono text-[11px] truncate max-w-[160px]" title={note}>{note}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-neutral-400 text-xs italic bg-white rounded-xl border border-dashed border-neutral-200">
+                    기물이 움직이면 수순이 이곳에 정밀 기록됩니다.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100 mt-6 lg:mt-0">
+              <h5 className="text-xs font-bold text-orange-600 flex items-center gap-1">
+                <Icons.Info />
+                색상 구분 안내
+              </h5>
+              <div className="text-[11px] text-neutral-600 space-y-1 mt-1.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="inline-block w-3 h-3 rounded-full bg-stone-100 border border-neutral-400"></span>
+                  <span><strong>백색 기물(플레이어)</strong>: 실물 흰색 크림 톤</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="inline-block w-3 h-3 rounded-full bg-neutral-900 border border-neutral-700"></span>
+                  <span><strong>흑색 기물(인공지능)</strong>: 어두운 리얼 차콜 톤</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 5. MAIN PORTFOLIO APP
+    // ==========================================
+    function App() {
+      const [scrolled, setScrolled] = useState(false);
+      const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+      const [searchQuery, setSearchQuery] = useState("");
+      const [currentFilter, setCurrentFilter] = useState("all");
+      const [selectedBook, setSelectedBook] = useState(null);
+      const [messages, setMessages] = useState([]);
+      const [activeGame, setActiveGame] = useState("tetris");
+      
+      // Guestbook Form State
+      const [guestName, setGuestName] = useState("");
+      const [guestRole, setGuestRole] = useState("");
+      const [guestMessage, setGuestMessage] = useState("");
+
+      useEffect(() => {
+        const handleScroll = () => {
+          if (window.scrollY > 50) {
+            setScrolled(true);
+          } else {
+            setScrolled(false);
+          }
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+      }, []);
+
+      useEffect(() => {
+        const stored = localStorage.getItem(GUESTBOOK_STORAGE_KEY);
+        if (stored) {
+          try {
+            setMessages(JSON.parse(stored));
+          } catch (e) {
+            setMessages(DEFAULT_MESSAGES);
+          }
+        } else {
+          setMessages(DEFAULT_MESSAGES);
+          localStorage.setItem(GUESTBOOK_STORAGE_KEY, JSON.stringify(DEFAULT_MESSAGES));
+        }
+      }, []);
+
+      useEffect(() => {
+        if (selectedBook) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = '';
+        }
+        return () => {
+          document.body.style.overflow = '';
+        };
+      }, [selectedBook]);
+
+      const handleAddMessage = (e) => {
+        e.preventDefault();
+        if (!guestName.trim() || !guestMessage.trim()) return;
+
+        const now = new Date();
+        const formattedDate = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+
+        const newMsg = {
+          name: guestName.trim(),
+          role: guestRole.trim(),
+          message: guestMessage.trim(),
+          date: formattedDate
+        };
+
+        const updated = [newMsg, ...messages];
+        setMessages(updated);
+        localStorage.setItem(GUESTBOOK_STORAGE_KEY, JSON.stringify(updated));
+
+        setGuestName("");
+        setGuestRole("");
+        setGuestMessage("");
+      };
+
+      const handleDeleteMessage = (indexToDelete) => {
+        const updated = messages.filter((_, idx) => idx !== indexToDelete);
+        setMessages(updated);
+        localStorage.setItem(GUESTBOOK_STORAGE_KEY, JSON.stringify(updated));
+      };
+
+      const filteredBooks = BOOKS_DATA.filter(book => {
+        const matchesCategory = currentFilter === 'all' || book.category === currentFilter;
+        const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                              book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                              book.categoryKo.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+      });
+
+      return (
+        <div className="bg-white text-neutral-800 font-sans antialiased selection:bg-orange-100 selection:text-orange-600">
+          
+          {/* NAVBAR */}
+          <nav 
+            id="navbar" 
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
+              scrolled 
+                ? 'bg-white/90 backdrop-blur-md shadow-sm text-neutral-900 border-neutral-100' 
+                : 'text-white border-white/10 bg-transparent'
+            }`}
+          >
+            <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+              <a href="#" className="text-lg font-bold tracking-widest flex items-center gap-2 group">
+                <span className="text-xl text-orange-500 font-light">∞</span>
+                <span className="tracking-widest">ICOMSSAM</span>
+              </a>
+              
+              <div className="hidden md:flex items-center gap-8 text-xs font-semibold tracking-wider uppercase">
+                <a href="#about" className="hover:text-orange-500 transition-colors">소개 (INTRO)</a>
+                <a href="#career" className="hover:text-orange-500 transition-colors">진로 (CAREER)</a>
+                <a href="#reading" className="hover:text-orange-500 transition-colors">독서 (BOOKS)</a>
+                <a href="#guestbook" className="hover:text-orange-500 transition-colors">방명록 (GUESTBOOK)</a>
+                <a href="#game" className="hover:text-orange-500 transition-colors flex items-center gap-1">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+                  게임 (GAME)
+                </a>
+              </div>
+
+              <div className="hidden md:block">
+                <a 
+                  href="#guestbook" 
+                  className={`text-xs font-semibold px-5 py-2.5 rounded-full border transition-all duration-300 flex items-center gap-1 ${
+                    scrolled
+                      ? 'border-neutral-200 hover:border-orange-500 hover:text-orange-500 text-neutral-800'
+                      : 'border-white/30 hover:border-orange-500 hover:text-orange-500 text-white'
+                  }`}
+                >
+                  문의하기 <Icons.ArrowRight />
+                </a>
+              </div>
+
+              <button 
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+                className="md:hidden p-2 text-current focus:outline-none" 
+                aria-label="메뉴 토글"
+              >
+                {mobileMenuOpen ? <Icons.X /> : <Icons.Menu />}
+              </button>
+            </div>
+
+            {mobileMenuOpen && (
+              <div className="md:hidden border-b border-neutral-100 bg-neutral-950 text-neutral-200 px-6 py-6 space-y-4 shadow-xl">
+                <a href="#about" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium py-1 hover:text-orange-500 transition-colors">소개 (INTRO)</a>
+                <a href="#career" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium py-1 hover:text-orange-500 transition-colors">진로 (CAREER)</a>
+                <a href="#reading" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium py-1 hover:text-orange-500 transition-colors">독서 (BOOKS)</a>
+                <a href="#guestbook" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium py-1 hover:text-orange-500 transition-colors">방명록 (GUESTBOOK)</a>
+                <a href="#game" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium py-1 hover:text-orange-500 transition-colors">게임 (GAME)</a>
+                <hr className="border-neutral-800" />
+                <a href="#guestbook" onClick={() => setMobileMenuOpen(false)} className="inline-flex items-center gap-1.5 text-xs text-orange-500 font-semibold">
+                  문의하기 <Icons.ArrowRight />
+                </a>
+              </div>
+            )}
+          </nav>
+
+          {/* HERO */}
+          <section id="about" className="relative min-h-screen flex items-center justify-center bg-neutral-950 overflow-hidden pt-20">
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat" 
+              style={{ backgroundImage: "url('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1920&q=80')" }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/90 via-neutral-950/75 to-neutral-900/40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-transparent" />
+
+            <div className="relative z-10 max-w-6xl mx-auto px-6 w-full py-12 md:py-24 flex flex-col justify-between min-h-[calc(100vh-5rem)]">
+              <div />
+
+              <div className="max-w-2xl space-y-8 my-auto animate-fadeIn">
+                <div className="space-y-4">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight md:leading-[1.2]">
+                    배움을 디자인하고<br />
+                    가치를 실현하는 인재입니다.
+                  </h1>
+                  <p className="text-neutral-300 text-sm md:text-base leading-relaxed font-light">
+                    반갑습니다. 저는 디자인적 사고와 기술적 해결책의 균형을 중요하게 생각하는 예비 디자이너이자 개발자입니다. 넓은 시야를 갖추기 위해 다양한 분야의 지식을 책과 프로젝트를 통해 습득하고 있으며, 단순한 문제해결을 넘어 사용자 경험을 혁신하는 것을 목표로 삼고 있습니다.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <a 
+                    href="#reading" 
+                    className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-neutral-950 font-bold px-7 py-3.5 rounded-full shadow-lg hover:shadow-orange-500/20 hover:scale-[1.03] transition-all duration-300 text-sm animate-fadeIn"
+                  >
+                    기록 시작하기
+                    <Icons.ArrowRight />
+                  </a>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center justify-center text-center text-neutral-400 gap-2 pb-4">
+                <span className="text-[10px] tracking-widest uppercase font-semibold">더 알아보기</span>
+                <a href="#career" className="animate-bounce text-neutral-300 hover:text-orange-500 transition-colors">
+                  <Icons.ChevronDown />
+                </a>
+              </div>
+            </div>
+          </section>
+
+          {/* CAREER */}
+          <section id="career" className="py-24 bg-neutral-50 border-y border-neutral-100">
+            <div className="max-w-5xl mx-auto px-6">
+              <div className="max-w-2xl mb-16">
+                <span className="text-xs font-bold text-orange-500 uppercase tracking-widest">CAREER & VISION</span>
+                <h2 className="text-3xl font-extrabold text-neutral-900 mt-2">세상을 잇는 진로와 지향점</h2>
+                <p className="text-neutral-500 mt-3">단순한 기술자가 아닌, 사람의 마음을 이해하는 '인문학적 개발자 및 디자이너'로의 도약입니다.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-neutral-100 hover:border-orange-200 hover:shadow-md transition-all duration-300 group">
+                  <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center mb-6 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300">
+                    <Icons.Compass />
+                  </div>
+                  <h3 className="text-lg font-bold text-neutral-900 mb-2">지속가능한 UX/UI 설계</h3>
+                  <p className="text-neutral-600 text-sm leading-relaxed">
+                    누구나 소외받지 않고 편리하게 사용할 수 있는 장벽 없는(Accessible) 디지털 인터페이스를 디자인하고 개발하는 것이 첫 번째 목표입니다.
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <span className="text-[11px] bg-neutral-100 text-neutral-600 px-2.5 py-1 rounded-md font-medium">사용자 경험</span>
+                    <span className="text-[11px] bg-neutral-100 text-neutral-600 px-2.5 py-1 rounded-md font-medium">접근성</span>
+                  </div>
+                </div>
+
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-neutral-100 hover:border-orange-200 hover:shadow-md transition-all duration-300 group">
+                  <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center mb-6 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300">
+                    <Icons.Code />
+                  </div>
+                  <h3 className="text-lg font-bold text-neutral-900 mb-2">프론트엔드 역량 강화</h3>
+                  <p className="text-neutral-600 text-sm leading-relaxed">
+                    기획한 아이디어를 우아한 코드로 실체화합니다. 최신 웹 기술 스택을 주도적으로 습득하여 고성능 및 고신뢰성 웹 서비스를 구현합니다.
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <span className="text-[11px] bg-neutral-100 text-neutral-600 px-2.5 py-1 rounded-md font-medium">Tailwind CSS</span>
+                    <span className="text-[11px] bg-neutral-100 text-neutral-600 px-2.5 py-1 rounded-md font-medium">React / JS</span>
+                  </div>
+                </div>
+
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-neutral-100 hover:border-orange-200 hover:shadow-md transition-all duration-300 group">
+                  <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center mb-6 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300">
+                    <Icons.BookOpen />
+                  </div>
+                  <h3 className="text-lg font-bold text-neutral-900 mb-2">인문학적 통찰 융합</h3>
+                  <p className="text-neutral-600 text-sm leading-relaxed">
+                    독서 활동을 기반으로 인문학, 심리학, 철학적 지식을 공학 지식과 융합합니다. 이를 통해 사람 냄새가 나는 따뜻한 프로덕트를 지향합니다.
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <span className="text-[11px] bg-neutral-100 text-neutral-600 px-2.5 py-1 rounded-md font-medium">심리학</span>
+                    <span className="text-[11px] bg-neutral-100 text-neutral-600 px-2.5 py-1 rounded-md font-medium">융합 사고</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* BOOKS */}
+          <section id="reading" className="py-24 bg-white">
+            <div className="max-w-5xl mx-auto px-6">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+                <div className="max-w-md">
+                  <span className="text-xs font-bold text-orange-500 uppercase tracking-widest">READING ARCHIVE</span>
+                  <h2 className="text-3xl font-extrabold text-neutral-900 mt-2">지식의 나이테, 독서 활동</h2>
+                  <p className="text-neutral-500 mt-3">진로 역량을 기르고 세상을 폭넓게 바라보기 위해 정리한 도서 목록입니다. 각 도서를 클릭하여 핵심 요약과 느낀 점을 읽어보세요.</p>
+                </div>
+                
+                <div className="relative w-full md:w-64">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-400">
+                    <Icons.Search />
+                  </span>
+                  <input 
+                    type="text" 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="책 제목, 저자, 키워드 검색" 
+                    className="w-full pl-9 pr-4 py-2.5 text-sm bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-8 border-b border-neutral-100 pb-4">
+                {[
+                  { id: 'all', label: '전체보기' },
+                  { id: 'tech', label: '기술/IT' },
+                  { id: 'design', label: '디자인/UX' },
+                  { id: 'humanities', label: '인문/철학' },
+                  { id: 'growth', label: '자기계발' }
+                ].map(tab => (
+                  <button 
+                    key={tab.id}
+                    onClick={() => setCurrentFilter(tab.id)}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                      currentFilter === tab.id 
+                        ? 'bg-orange-500 text-white shadow-sm' 
+                        : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {filteredBooks.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {filteredBooks.map(book => (
+                    <div 
+                      key={book.id}
+                      onClick={() => setSelectedBook(book)}
+                      className="bg-white p-6 rounded-2xl border border-neutral-100 hover:border-orange-200 hover:shadow-lg transition-all duration-300 flex flex-col justify-between cursor-pointer group animate-fadeIn"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="text-xs font-semibold text-orange-500 uppercase tracking-widest bg-orange-50 px-2.5 py-0.5 rounded-full">
+                            {book.categoryKo}
+                          </span>
+                          <span className="text-neutral-400 text-xs">{book.date}</span>
+                        </div>
+                        
+                        <div className="flex gap-4 items-start">
+                          <div className="text-3xl p-3 bg-neutral-50 rounded-xl border border-neutral-100 group-hover:scale-110 transition-transform">
+                            {book.coverEmoji}
+                          </div>
+                          <div className="space-y-1">
+                            <h3 className="font-extrabold text-neutral-900 group-hover:text-orange-500 transition-colors line-clamp-1">
+                              {book.title}
+                            </h3>
+                            <p className="text-sm text-neutral-500">{book.author} 지음</p>
+                          </div>
+                        </div>
+
+                        <p className="text-neutral-600 text-sm leading-relaxed mt-4 line-clamp-2">
+                          "{book.quote}"
+                        </p>
+                      </div>
+
+                      <div className="mt-6 flex items-center gap-1 text-sm font-semibold text-orange-500 hover:text-orange-600 group-hover:translate-x-1 transition-transform">
+                        <span>자세히 보기</span>
+                        <Icons.ChevronRight />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="mx-auto text-neutral-300 mb-2 flex justify-center"><Icons.Info /></div>
+                  <p className="text-neutral-500">검색 조건과 일치하는 책이 없습니다.</p>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* GUESTBOOK */}
+          <section id="guestbook" className="py-24 bg-neutral-50 border-t border-neutral-100">
+            <div className="max-w-3xl mx-auto px-6">
+              <div className="text-center mb-12">
+                <span className="text-xs font-bold text-orange-500 uppercase tracking-widest">CONNECT WITH ME</span>
+                <h2 className="text-3xl font-extrabold text-neutral-900 mt-2">응원의 한마디</h2>
+                <p className="text-neutral-500 mt-3">제 여정을 지켜봐 주시는 소중한 방문객분들의 따뜻한 방명록을 환영합니다.</p>
+              </div>
+
+              <form onSubmit={handleAddMessage} className="bg-white p-6 rounded-2xl border border-neutral-100 shadow-sm space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-neutral-500 uppercase mb-1">이름 / 닉네임</label>
+                    <input 
+                      type="text" 
+                      required 
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      placeholder="이름을 입력해주세요"
+                      className="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-neutral-500 uppercase mb-1">소속 (선택)</label>
+                    <input 
+                      type="text" 
+                      value={guestRole}
+                      onChange={(e) => setGuestRole(e.target.value)}
+                      placeholder="예: 동료, 멘토, 기업 등"
+                      className="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-500 uppercase mb-1">메시지</label>
+                  <textarea 
+                    required 
+                    rows="3" 
+                    value={guestMessage}
+                    onChange={(e) => setGuestMessage(e.target.value)}
+                    placeholder="따뜻한 응원 글이나 건의사항을 자유롭게 남겨주세요."
+                    className="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all"
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <button 
+                    type="submit" 
+                    className="bg-orange-500 hover:bg-orange-600 text-neutral-950 font-bold px-6 py-2.5 rounded-full text-sm shadow-sm transition-all duration-200 flex items-center gap-2"
+                  >
+                    <Icons.Send />
+                    방명록 등록하기
+                  </button>
+                </div>
+              </form>
+
+              <div className="mt-8 space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                {messages.map((msg, idx) => (
+                  <div 
+                    key={idx}
+                    className="bg-white p-5 rounded-2xl border border-neutral-100 shadow-sm relative group animate-fadeIn"
+                  >
+                    <button 
+                      onClick={() => handleDeleteMessage(idx)}
+                      className="absolute top-4 right-4 text-neutral-300 hover:text-red-500 transition-colors md:opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-neutral-50" 
+                      title="삭제하기"
+                    >
+                      <Icons.Trash2 />
+                    </button>
+                    
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-bold text-neutral-900 text-sm">{msg.name}</span>
+                      {msg.role && (
+                        <span className="text-[10px] bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded-md font-medium">
+                          {msg.role}
+                        </span>
+                      )}
+                      <span className="text-neutral-300 text-xs">•</span>
+                      <span className="text-neutral-400 text-xs">{msg.date}</span>
+                    </div>
+                    <p className="text-neutral-600 text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* ARCADES */}
+          <section id="game" className="py-24 bg-white border-t border-neutral-100">
+            <div className="max-w-5xl mx-auto px-6">
+              <div className="text-center mb-12">
+                <span className="text-xs font-bold text-orange-500 uppercase tracking-widest">MINI GAME STUDIO</span>
+                <h2 className="text-3xl font-extrabold text-neutral-900 mt-2">잠시 쉬어가는 아케이드</h2>
+                <p className="text-neutral-500 mt-3">머리도 식히고 집중력도 높일 수 있는 3가지 클래식 게임을 준비했습니다.</p>
+              </div>
+
+              <div className="flex justify-center gap-3 mb-10">
+                {[
+                  { id: "tetris", label: "테트리스", desc: "블록 쌓기" },
+                  { id: "sudoku", label: "스도쿠", desc: "두뇌 퍼즐" },
+                  { id: "chess", label: "체스", desc: "AI 1인 대국" }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveGame(tab.id)}
+                    className={`flex-1 max-w-[200px] py-4 px-3 rounded-2xl border text-center transition-all duration-300 ${
+                      activeGame === tab.id
+                        ? "border-orange-500 bg-orange-50/50 shadow-sm ring-1 ring-orange-500"
+                        : "border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50"
+                    }`}
+                  >
+                    <p className={`font-bold text-sm ${activeGame === tab.id ? "text-orange-600" : "text-neutral-800"}`}>
+                      {tab.label}
+                    </p>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">{tab.desc}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="bg-neutral-50 rounded-3xl border border-neutral-200/60 p-6 md:p-8 shadow-sm flex flex-col items-center justify-center min-h-[520px]">
+                {activeGame === "tetris" && <TetrisGame />}
+                {activeGame === "sudoku" && <SudokuGame />}
+                {activeGame === "chess" && <ChessGame />}
+              </div>
+            </div>
+          </section>
+
+          {/* FOOTER */}
+          <footer className="bg-white border-t border-neutral-100 py-12">
+            <div className="max-w-5xl mx-auto px-6 text-center space-y-4">
+              <div className="flex justify-center gap-2 items-center text-neutral-900 font-bold">
+                <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                <span>ICOMSSAM</span>
+              </div>
+              <p className="text-xs text-neutral-400 leading-relaxed">
+                © 2026 Dohyun Kim. Designed with Orange point concept, minimalist principles, and readable modern typography.<br />
+                All rights reserved. Built using React & Tailwind CSS.
+              </p>
+            </div>
+          </footer>
+
+          {/* BOOK DETAIL MODAL */}
+          {selectedBook && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div 
+                onClick={() => setSelectedBook(null)}
+                className="absolute inset-0 bg-neutral-900/40 backdrop-blur-sm transition-opacity" 
+              />
+              
+              <div className="relative bg-white rounded-3xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl border border-neutral-100 z-10 animate-fadeIn">
+                <div className="sticky top-0 bg-white border-b border-neutral-100 px-6 py-4 flex items-center justify-between">
+                  <span className="text-[11px] font-bold tracking-widest text-orange-500 bg-orange-50 px-2.5 py-1 rounded-full uppercase">
+                    {selectedBook.categoryKo}
+                  </span>
+                  <button 
+                    onClick={() => setSelectedBook(null)}
+                    className="text-neutral-400 hover:text-neutral-600 p-1.5 rounded-full hover:bg-neutral-100 transition-colors flex items-center justify-center"
+                  >
+                    <Icons.X />
+                  </button>
+                </div>
+
+                <div className="p-6 md:p-8 space-y-6">
+                  <div className="space-y-2">
+                    <h3 className="text-2xl md:text-3xl font-extrabold text-neutral-900 leading-tight">
+                      {selectedBook.title}
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm text-neutral-500">
+                      <span className="font-medium">{selectedBook.author} 지음</span>
+                      <span className="text-neutral-300">•</span>
+                      <span>독서 기간: {selectedBook.date}</span>
+                    </div>
+                  </div>
+
+                  <div className="border-l-4 border-orange-500 bg-orange-50/50 p-4 rounded-r-xl">
+                    <p className="text-sm italic text-neutral-700 leading-relaxed font-medium">
+                      "{selectedBook.quote}"
+                    </p>
+                  </div>
+
+                  <div className="space-y-5 text-sm md:text-base leading-relaxed text-neutral-600">
+                    <div>
+                      <h4 className="font-bold text-neutral-900 text-sm tracking-wider uppercase flex items-center gap-1.5 mb-2 text-orange-600">
+                        <Icons.Sparkles />
+                        책을 읽게 된 동기 (Motivation)
+                      </h4>
+                      <p className="text-neutral-600 leading-relaxed text-sm md:text-base">
+                        {selectedBook.motive}
+                      </p>
+                    </div>
+
+                    <div className="border-t border-neutral-100 pt-5">
+                      <h4 className="font-bold text-neutral-900 text-sm tracking-wider uppercase flex items-center gap-1.5 mb-2 text-orange-600">
+                        <Icons.CheckSquare />
+                        핵심 요약 (Key Takeaway)
+                      </h4>
+                      <ul className="space-y-1.5">
+                        {selectedBook.takeaways.map((takeaway, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-neutral-600 text-sm leading-relaxed">
+                            <span className="text-orange-500 mt-1 select-none">•</span>
+                            <span>{takeaway}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="border-t border-neutral-100 pt-5">
+                      <h4 className="font-bold text-neutral-900 text-sm tracking-wider uppercase flex items-center gap-1.5 mb-2 text-orange-600">
+                        <Icons.Lightbulb />
+                        나의 변화와 향후 진로 적용 (Insight)
+                      </h4>
+                      <p className="text-neutral-600 leading-relaxed text-sm md:text-base">
+                        {selectedBook.insight}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    // Render the App
+    const container = document.getElementById('root');
+    const root = ReactDOM.createRoot(container);
+    root.render(<App />);
+  </script>
+</body>
+</html>
